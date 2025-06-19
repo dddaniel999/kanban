@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dialog } from "@headlessui/react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { Task } from "../TaskCard";
 import toast from "react-hot-toast";
 
@@ -34,12 +34,10 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       toast.error("Titlul este obligatoriu.");
       return;
     }
-
     if (!deadline) {
       toast.error("Deadline-ul este obligatoriu.");
       return;
     }
-
     if (!assignedToId) {
       toast.error("Trebuie să selectezi un membru.");
       return;
@@ -56,7 +54,10 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       description,
       deadline,
       status: defaultStatus,
-      assignedTo: { id: selectedMember.id, username: selectedMember.username },
+      assignedTo: {
+        id: selectedMember.id,
+        username: selectedMember.username,
+      },
     });
 
     setTitle("");
@@ -67,89 +68,102 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   };
 
   return (
-    <Dialog
-      open={isOpen}
-      onClose={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center"
-    >
-      <div
-        className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm"
-        aria-hidden="true"
-      />
-      <div className="relative bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-md z-50">
-        <Dialog.Title className="text-lg font-bold mb-4 text-gray-800 dark:text-white">
-          Creează un task
-        </Dialog.Title>
-
-        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-          Titlu
-          <input
-            className="w-full mt-1 p-2 rounded bg-gray-100 dark:bg-gray-700 dark:text-white"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </label>
-
-        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-          Descriere
-          <textarea
-            className="w-full mt-1 p-2 rounded bg-gray-100 dark:bg-gray-700 dark:text-white"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </label>
-
-        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-          Deadline
-          <input
-            type="datetime-local"
-            className="w-full mt-1 p-2 rounded bg-gray-100 dark:bg-gray-700 dark:text-white"
-            value={deadline}
-            onChange={(e) => setDeadline(e.target.value)}
-          />
-        </label>
-
-        <label className="block mb-4 text-sm font-medium text-gray-700 dark:text-gray-200">
-          Asignează membru
-          <select
-            className="w-full mt-1 p-2 rounded bg-gray-100 dark:bg-gray-700 dark:text-white"
-            value={assignedToId ?? ""}
-            onChange={(e) =>
-              setAssignedToId(
-                e.target.value ? Number(e.target.value) : undefined
-              )
-            }
-          >
-            <option value="">-- selectează un membru --</option>
-            {members
-              .filter(
-                (m): m is { id: number; username: string } =>
-                  !!m && typeof m.id === "number"
-              )
-              .map((member) => (
-                <option key={`member-${member.id}`} value={member.id}>
-                  {member.username}
-                </option>
-              ))}
-          </select>
-        </label>
-
-        <div className="flex justify-end gap-2">
-          <button
-            className="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500"
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          <motion.div
+            className="relative bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-md z-50"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
           >
-            Anulează
-          </button>
-          <button
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            onClick={handleSubmit}
-          >
-            Creează
-          </button>
-        </div>
-      </div>
-    </Dialog>
+            <h2 className="text-lg font-bold mb-4 text-gray-800 dark:text-white">
+              Creează un task
+            </h2>
+
+            <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+              Titlu
+              <input
+                className="w-full mt-1 p-2 rounded bg-gray-100 dark:bg-gray-700 dark:text-white"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </label>
+
+            <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+              Descriere
+              <textarea
+                className="w-full mt-1 p-2 rounded bg-gray-100 dark:bg-gray-700 dark:text-white"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </label>
+
+            <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+              Deadline
+              <input
+                type="datetime-local"
+                className="w-full mt-1 p-2 rounded bg-gray-100 dark:bg-gray-700 dark:text-white"
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+              />
+            </label>
+
+            <label className="block mb-4 text-sm font-medium text-gray-700 dark:text-gray-200">
+              Asignează membru
+              <select
+                className="w-full mt-1 p-2 rounded bg-gray-100 dark:bg-gray-700 dark:text-white"
+                value={assignedToId ?? ""}
+                onChange={(e) =>
+                  setAssignedToId(
+                    e.target.value ? Number(e.target.value) : undefined
+                  )
+                }
+              >
+                <option value="">-- selectează un membru --</option>
+                {members
+                  .filter(
+                    (m): m is { id: number; username: string } =>
+                      !!m && typeof m.id === "number"
+                  )
+                  .map((member) => (
+                    <option key={`member-${member.id}`} value={member.id}>
+                      {member.username}
+                    </option>
+                  ))}
+              </select>
+            </label>
+
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500"
+                onClick={onClose}
+              >
+                Anulează
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={handleSubmit}
+              >
+                Creează
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 

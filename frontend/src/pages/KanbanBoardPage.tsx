@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  type DropResult,
+} from "@hello-pangea/dnd";
 import {
   getUserTasksPerProject,
   updateTask,
@@ -18,9 +23,17 @@ import ViewTaskModal from "../components/Kanban/ViewTaskModal";
 import toast from "react-hot-toast";
 import { UserIcon, ArrowLeftIcon } from "@heroicons/react/24/solid";
 import ProjectSettingsModal from "../components/Kanban/ProjectSettingsModal";
-import { ClipboardList, Loader, CheckCircle, Settings } from "lucide-react";
+import {
+  ClipboardList,
+  Loader,
+  CheckCircle,
+  Settings,
+  PlusIcon,
+} from "lucide-react";
 
 const columns = ["TO_DO", "IN_PROGRESS", "DONE"] as const;
+
+type ColumnType = (typeof columns)[number] | "LATE";
 
 const columnLabels: Record<
   (typeof columns)[number],
@@ -37,10 +50,10 @@ const iconColors: Record<(typeof columns)[number], string> = {
   DONE: "text-green-500",
 };
 
-const columnBgClasses: Record<(typeof columns)[number], string> = {
-  TO_DO: "bg-yellow-100/30 dark:bg-yellow-300/5 backdrop-blur-md",
-  IN_PROGRESS: "bg-blue-100/30 dark:bg-blue-300/5 backdrop-blur-md",
-  DONE: "bg-green-100/30 dark:bg-green-300/5 backdrop-blur-md",
+const columnBgClasses = {
+  TO_DO: "bg-white dark:bg-gray-800",
+  IN_PROGRESS: "bg-white dark:bg-gray-800",
+  DONE: "bg-white dark:bg-gray-800",
 };
 
 const KanbanBoard: React.FC = () => {
@@ -51,7 +64,7 @@ const KanbanBoard: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [creatingFor, setCreatingFor] = useState<Task["status"] | null>(null);
+  const [creatingFor, setCreatingFor] = useState<ColumnType | null>(null);
   const [members, setMembers] = useState<
     { id: number; username: string; role?: string }[]
   >([]);
@@ -92,27 +105,55 @@ const KanbanBoard: React.FC = () => {
     refreshProjectData();
   }, [activeProjectId]);
 
-  const onDragEnd = async (result: any) => {
+  const onDragEnd = (result: DropResult) => {
     const { source, destination, draggableId } = result;
-    if (!destination || source.droppableId === destination.droppableId) return;
+    if (!destination) return;
 
-    const updatedTasks = tasks.map((task) => {
-      if (task.id.toString() === draggableId) {
-        return { ...task, status: destination.droppableId as Task["status"] };
-      }
-      return task;
-    });
-
-    const movedTask = updatedTasks.find((t) => t.id.toString() === draggableId);
-
-    if (movedTask) {
-      try {
-        await updateTask({ ...movedTask, status: movedTask.status });
-        setTasks(updatedTasks);
-      } catch (err) {
-        toast.error("Eroare la actualizarea statusului.");
-      }
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    ) {
+      return;
     }
+
+    const updatedTasks = [...tasks];
+    const draggedTaskIndex = updatedTasks.findIndex(
+      (t) => t.id.toString() === draggableId
+    );
+    if (draggedTaskIndex === -1) return;
+
+    const draggedTask = updatedTasks[draggedTaskIndex];
+    const newStatus = destination.droppableId as ColumnType;
+
+    const previousState = [...tasks]; // backup vizual
+
+    // Mutare optimistă în UI
+    updatedTasks.splice(draggedTaskIndex, 1);
+    const updatedDraggedTask = {
+      ...draggedTask,
+      status: newStatus,
+    };
+    updatedTasks.splice(destination.index, 0, updatedDraggedTask);
+
+    const reorderedTasks = updatedTasks.map((task, index) =>
+      task.status === newStatus ? { ...task, position: index } : task
+    );
+
+    setTasks(reorderedTasks);
+
+    setTimeout(() => {
+      updateTask({
+        ...draggedTask,
+        status: newStatus,
+        position: destination.index,
+      }).catch((err) => {
+        console.error(err);
+        toast.error(
+          "Eroare la actualizare. Taskul a fost readus la poziția anterioară."
+        );
+        setTasks(previousState); // rollback dacă backend-ul dă fail
+      });
+    }, 150);
   };
 
   const handleEditSave = async (updated: Task) => {
@@ -221,15 +262,21 @@ const KanbanBoard: React.FC = () => {
       )}
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="w-screen h-screen flex items-center justify-center overflow-x-hidden">
+        <div className="w-full h-screen flex items-center justify-center overflow-hidden">
           <div className="w-[80vw] h-[80vh] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
             {columns.map((col) => (
               <Droppable key={col} droppableId={col}>
-                {(provided) => (
+                {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`p-4 rounded-xl shadow h-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700 ${columnBgClasses[col]}`}
+                    className={`p-4 rounded-xl shadow h-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700 transition-colors duration-200 ${
+                      columnBgClasses[col]
+                    } ${
+                      snapshot.isDraggingOver
+                        ? "bg-blue-100 dark:bg-blue-900/30"
+                        : ""
+                    }`}
                   >
                     <div className="flex justify-between items-center mb-2">
                       <h2 className="text-lg font-bold flex items-center gap-2 text-gray-800 dark:text-white">
@@ -238,7 +285,7 @@ const KanbanBoard: React.FC = () => {
                         })}
                         {columnLabels[col].label}
                       </h2>
-                      {isProjectManager && (
+                      {isProjectManager && col === "TO_DO" && (
                         <button
                           onClick={() => {
                             if (members.length < 1) {
@@ -251,22 +298,27 @@ const KanbanBoard: React.FC = () => {
                           }}
                           className="text-xl text-blue-600 hover:text-blue-800"
                         >
-                          +
+                          <PlusIcon className="w-5 h-5" />
                         </button>
                       )}
                     </div>
-                    <div className="flex-1 overflow-y-auto">
+                    <div className="flex-1 overflow-y-auto min-h-[12rem] relative">
                       {tasks
                         .filter((task) => task.status === col)
+                        .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
                         .map((task, index) => (
                           <Draggable
                             key={task.id.toString()}
                             draggableId={task.id.toString()}
                             index={index}
                           >
-                            {(provided) => (
+                            {(provided, snapshot) => (
                               <div
-                                className="p-1"
+                                className={`p-1 transition-all duration-200 ${
+                                  snapshot.isDragging
+                                    ? "scale-105 drop-shadow-lg"
+                                    : ""
+                                }`}
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}

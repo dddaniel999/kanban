@@ -1,7 +1,6 @@
 import React from "react";
-import { Dialog } from "@headlessui/react";
 import { differenceInHours } from "date-fns";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Clock } from "lucide-react";
 import type { Task } from "../TaskCard";
 
@@ -52,84 +51,94 @@ const ViewTaskModal: React.FC<Props> = ({ isOpen, onClose, task }) => {
     : "text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700";
 
   return (
-    <Dialog open={isOpen} onClose={onClose} className="fixed inset-0 z-50">
-      <div className="flex items-center justify-center min-h-screen px-4">
-        <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm"
-          aria-hidden="true"
-        />
+    <AnimatePresence>
+      {isOpen && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.2 }}
-          className="relative bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-xl w-full shadow-xl z-50"
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
         >
-          {/* STATUS badge */}
-          <div className="absolute top-4 right-4">
-            <span
-              className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${statusStyles[effectiveStatus]}`}
-            >
-              {
+          <motion.div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          <motion.div
+            className="relative bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-xl w-full shadow-xl z-50"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* STATUS badge */}
+            <div className="absolute top-4 right-4">
+              <span
+                className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${statusStyles[effectiveStatus]}`}
+              >
                 {
-                  TO_DO: "În așteptare",
-                  IN_PROGRESS: "În lucru",
-                  DONE: "Finalizat",
-                  LATE: "Întârziat",
-                }[effectiveStatus]
-              }
-            </span>
-          </div>
+                  {
+                    TO_DO: "În așteptare",
+                    IN_PROGRESS: "În lucru",
+                    DONE: "Finalizat",
+                    LATE: "Întârziat",
+                  }[effectiveStatus]
+                }
+              </span>
+            </div>
 
-          <Dialog.Title className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            {task.title}
-          </Dialog.Title>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              {task.title}
+            </h2>
 
-          <p className="text-sm text-gray-700 dark:text-gray-300 mb-6">
-            {task.description || "Fără descriere"}
-          </p>
+            <p className="text-sm text-gray-700 dark:text-gray-300 mb-6">
+              {task.description || "Fără descriere"}
+            </p>
 
-          {/* Taguri */}
-          {Array.isArray(task.tags) && task.tags.length > 0 && (
-            <div className="mb-6">
-              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Taguri:
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {task.tags.map((tag, idx) => (
-                  <span
-                    key={idx}
-                    className="bg-blue-100 text-blue-700 px-3 py-1 text-xs rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
+            {/* Taguri */}
+            {Array.isArray(task.tags) && task.tags.length > 0 && (
+              <div className="mb-6">
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Taguri:
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {task.tags.map((tag, idx) => (
+                    <span
+                      key={idx}
+                      className="bg-blue-100 text-blue-700 px-3 py-1 text-xs rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Deadline */}
-          {deadlineDate && (
-            <div
-              className={`mt-2 inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${deadlineClass}`}
-            >
-              <Clock className="w-3 h-3" />
-              Deadline: {deadlineDate.toLocaleString("ro-RO")}
-            </div>
-          )}
+            {/* Deadline */}
+            {deadlineDate && (
+              <div
+                className={`mt-2 inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${deadlineClass}`}
+              >
+                <Clock className="w-3 h-3" />
+                Deadline: {deadlineDate.toLocaleString("ro-RO")}
+              </div>
+            )}
 
-          {/* Buton */}
-          <div className="mt-10 flex justify-end">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-sm bg-gray-300 hover:bg-gray-400 rounded"
-            >
-              Închide
-            </button>
-          </div>
+            {/* Buton */}
+            <div className="mt-10 flex justify-end">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-sm bg-gray-300 hover:bg-gray-400 rounded"
+              >
+                Închide
+              </button>
+            </div>
+          </motion.div>
         </motion.div>
-      </div>
-    </Dialog>
+      )}
+    </AnimatePresence>
   );
 };
 

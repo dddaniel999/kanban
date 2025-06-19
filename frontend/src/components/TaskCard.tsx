@@ -10,6 +10,7 @@ export interface Task {
   assignedTo?: { id: number; username: string; email?: string };
   projectId: number;
   tags?: string[];
+  position?: number;
 }
 
 interface TaskCardProps {

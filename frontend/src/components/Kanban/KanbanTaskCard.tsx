@@ -25,7 +25,7 @@ const KanbanTaskCard: React.FC<KanbanTaskCardProps> = ({
   const isDueSoon =
     deadlineDate &&
     !isLate &&
-    differenceInHours(deadlineDate, now) <= 3 &&
+    differenceInHours(deadlineDate, now) <= 72 &&
     differenceInHours(deadlineDate, now) > 0;
 
   const deadlineClass = isLate
@@ -39,7 +39,13 @@ const KanbanTaskCard: React.FC<KanbanTaskCardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="relative bg-gradient-to-br from-white to-gray-100 dark:from-gray-700/20 dark:to-gray-800/40 p-4 rounded-xl mb-3 shadow hover:shadow-lg hover:scale-[1.01] hover:ring-1 ring-blue-500 transition duration-200"
+      className={`relative bg-gradient-to-br from-white to-gray-100 dark:from-gray-700/20 dark:to-gray-800/40 p-4 rounded-xl mb-3 shadow transition duration-200 hover:shadow-md ${
+        isLate
+          ? "border border-red-500"
+          : isDueSoon
+          ? "border border-yellow-400"
+          : "border border-transparent"
+      }`}
     >
       <div className="flex justify-between items-start gap-2">
         <div className="w-full">

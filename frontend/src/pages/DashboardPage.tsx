@@ -30,21 +30,15 @@ interface DashboardData {
   lateCount: number;
 }
 
-type CardType =
-  | "projects"
-  | "tasks"
-  | "todo"
-  | "inProgress"
-  | "done"
-  | "late"
-  | null;
+type CardType = "projects" | "tasks" | "todo" | "inProgress" | "done" | "late";
 
 const DashboardPage: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [data, setData] = useState<DashboardData | null>(null);
   const [managerData, setManagerData] = useState<any | null>(null);
-  const [selectedCard, setSelectedCard] = useState<CardType>(null);
+  const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
+
   const [error, setError] = useState<string | null>(null);
 
   useAuthRedirect();
@@ -89,6 +83,15 @@ const DashboardPage: React.FC = () => {
       default:
         return tasks;
     }
+  };
+
+  const displayNames: Record<CardType, string> = {
+    projects: "Proiectele mele",
+    tasks: "Toate taskurile",
+    todo: "Taskuri în așteptare",
+    inProgress: "Taskuri în lucru",
+    done: "Taskuri finalizate",
+    late: "Taskuri întârziate",
   };
 
   const cardColor = (type: CardType) => {
@@ -179,10 +182,10 @@ const DashboardPage: React.FC = () => {
           />
         </motion.div>
 
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {selectedCard && (
             <motion.div
-              key="list-section"
+              key={selectedCard}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 30 }}
@@ -196,9 +199,7 @@ const DashboardPage: React.FC = () => {
                 Înapoi
               </button>
               <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">
-                {selectedCard === "projects"
-                  ? "Proiectele mele"
-                  : `Taskuri - ${selectedCard}`}
+                {displayNames[selectedCard]}
               </h2>
 
               {selectedCard === "projects" ? (
