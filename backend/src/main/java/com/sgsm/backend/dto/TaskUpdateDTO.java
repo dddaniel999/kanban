@@ -10,7 +10,18 @@ public class TaskUpdateDTO {
     private LocalDate deadline;
     private Long assignedToId;
 
+    private Integer position;
+
+
     public TaskUpdateDTO() {}
+
+    public Integer getPosition() {
+        return position;
+    }
+
+    public void setPosition(Integer position) {
+        this.position = position;
+    }
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }

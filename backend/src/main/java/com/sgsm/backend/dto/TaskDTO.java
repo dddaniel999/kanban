@@ -11,7 +11,18 @@ public class TaskDTO {
     private Long projectId;
     private Long assignedToId; // userul căruia îi este atribuit taskul
 
+    private Integer position;
+
+
     public TaskDTO() {}
+
+    public Integer getPosition() {
+        return position;
+    }
+
+    public void setPosition(Integer position) {
+        this.position = position;
+    }
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }

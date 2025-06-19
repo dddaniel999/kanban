@@ -57,6 +57,10 @@ public class TaskController {
         task.setDeadline(dto.getDeadline());
         task.setProject(project);
         task.setAssignedTo(assignedTo);
+        int maxPos = taskRepository.findMaxPositionByStatusAndProjectId(dto.getStatus(), dto.getProjectId());
+        task.setPosition(maxPos + 1);
+
+
 
         taskRepository.save(task);
 
@@ -152,6 +156,10 @@ public class TaskController {
         }
 
         task.setStatus(dto.getStatus());
+        if (dto.getPosition() != null) {
+            task.setPosition(dto.getPosition());
+        }
+
         taskRepository.save(task);
 
         return ResponseEntity.ok(task);

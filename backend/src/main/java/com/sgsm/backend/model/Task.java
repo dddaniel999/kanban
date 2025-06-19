@@ -32,6 +32,10 @@ public class Task {
     @JoinColumn(name = "assigned_to")
     private User assignedTo;
 
+    @Column(name = "position")
+    private Integer position;
+
+
     public Task() {}
 
     public Task(Long id, String title, String description, String status, LocalDate deadline, String tags, Project project, User assignedTo) {
@@ -43,6 +47,14 @@ public class Task {
         this.tags = tags;
         this.project = project;
         this.assignedTo = assignedTo;
+    }
+
+    public Integer getPosition() {
+        return position;
+    }
+
+    public void setPosition(Integer position) {
+        this.position = position;
     }
 
     public Long getId() { return id; }

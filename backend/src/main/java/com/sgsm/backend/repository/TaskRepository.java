@@ -2,6 +2,8 @@ package com.sgsm.backend.repository;
 
 import com.sgsm.backend.model.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -16,6 +18,10 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     int countByAssignedToIdAndStatus(Long userId, String status);
 
     List<Task> findByProjectIdIn(List<Long> projectIds);
+
+    @Query("SELECT COALESCE(MAX(t.position), 0) FROM Task t WHERE t.status = :status AND t.project.id = :projectId")
+    int findMaxPositionByStatusAndProjectId(@Param("status") String status, @Param("projectId") Long projectId);
+
 
 
 }
