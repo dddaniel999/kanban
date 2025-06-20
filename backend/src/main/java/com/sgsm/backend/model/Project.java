@@ -27,6 +27,10 @@ public class Project {
     @JsonIgnore
     private List<ProjectMember> members;
 
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProjectComment> comments;
+
+
     public Project() {}
 
     public Project(Long id, String title, String description, LocalDateTime createdAt) {

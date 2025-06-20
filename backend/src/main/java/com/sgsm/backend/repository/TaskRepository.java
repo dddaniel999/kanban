@@ -19,6 +19,10 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     List<Task> findByProjectIdIn(List<Long> projectIds);
 
+    List<Task> findByProjectIdOrderByStatusAscPositionAsc(Long projectId);
+    List<Task> findByProjectIdAndStatusOrderByPositionAsc(Long projectId, String status);
+
+
     @Query("SELECT COALESCE(MAX(t.position), 0) FROM Task t WHERE t.status = :status AND t.project.id = :projectId")
     int findMaxPositionByStatusAndProjectId(@Param("status") String status, @Param("projectId") Long projectId);
 

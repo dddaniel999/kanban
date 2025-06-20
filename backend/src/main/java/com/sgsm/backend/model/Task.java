@@ -1,7 +1,7 @@
 package com.sgsm.backend.model;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -18,9 +18,10 @@ public class Task {
 
     private String status; // TO_DO, IN_PROGRESS, DONE, LATE
 
-    private LocalDate deadline;
+    private LocalDateTime deadline;
 
-    private String tags; // Poți salva ca string delimitat ex: "urgent,client,test"
+
+    private String tags;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -38,7 +39,7 @@ public class Task {
 
     public Task() {}
 
-    public Task(Long id, String title, String description, String status, LocalDate deadline, String tags, Project project, User assignedTo) {
+    public Task(Long id, String title, String description, String status, LocalDateTime deadline, String tags, Project project, User assignedTo) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -69,8 +70,8 @@ public class Task {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public LocalDate getDeadline() { return deadline; }
-    public void setDeadline(LocalDate deadline) { this.deadline = deadline; }
+    public LocalDateTime getDeadline() { return deadline; }
+    public void setDeadline(LocalDateTime deadline) { this.deadline = deadline; }
 
     public String getTags() { return tags; }
     public void setTags(String tags) { this.tags = tags; }

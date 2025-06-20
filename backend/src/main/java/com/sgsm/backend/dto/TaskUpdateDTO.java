@@ -1,13 +1,14 @@
 package com.sgsm.backend.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class TaskUpdateDTO {
     private String title;
     private String description;
     private String status;
     private String tags;
-    private LocalDate deadline;
+    private LocalDateTime deadline;
     private Long assignedToId;
 
     private Integer position;
@@ -35,8 +36,8 @@ public class TaskUpdateDTO {
     public String getTags() { return tags; }
     public void setTags(String tags) { this.tags = tags; }
 
-    public LocalDate getDeadline() { return deadline; }
-    public void setDeadline(LocalDate deadline) { this.deadline = deadline; }
+    public LocalDateTime getDeadline() { return deadline; }
+    public void setDeadline(LocalDateTime deadline) { this.deadline = deadline; }
 
     public Long getAssignedToId() { return assignedToId; }
     public void setAssignedToId(Long assignedToId) { this.assignedToId = assignedToId; }

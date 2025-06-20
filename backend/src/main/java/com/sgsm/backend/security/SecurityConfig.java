@@ -26,12 +26,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                .cors(cors -> {}) // ✅ activează CORS conform CorsConfig
+                .cors(cors -> {}) //  activează CORS conform CorsConfig
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/users").authenticated() // ✅ permite accesul la GET /users pentru utilizatori autentificați
+                        .requestMatchers(HttpMethod.GET, "/users").authenticated() // permite accesul la GET /users pentru utilizatori autentificați
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
