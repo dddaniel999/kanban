@@ -23,7 +23,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
     if (task) {
       setTitle(task.title);
       setDescription(task.description || "");
-      setDeadline(task.deadline?.slice(0, 10) || "");
+      setDeadline(task.deadline?.slice(0, 16) || ""); // include și ora
     }
   }, [task]);
 
@@ -80,7 +80,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
             <label className="block mb-4 text-sm font-medium text-gray-700 dark:text-gray-200">
               Deadline
               <input
-                type="date"
+                type="datetime-local"
                 className="w-full mt-1 p-2 rounded bg-gray-100 dark:bg-gray-700 dark:text-white"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}

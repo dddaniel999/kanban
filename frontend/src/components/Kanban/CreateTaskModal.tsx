@@ -30,6 +30,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   const [assignedToId, setAssignedToId] = useState<number | undefined>();
 
   const handleSubmit = () => {
+    console.log("Deadline trimis:", deadline);
     if (!title.trim()) {
       toast.error("Titlul este obligatoriu.");
       return;

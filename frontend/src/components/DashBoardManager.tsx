@@ -31,53 +31,65 @@ const DashboardManager: React.FC<Props> = ({ data }) => {
     <div className="mt-10 w-full">
       <h2 className="text-2xl text-white font-bold mb-6">Dashboard Manager</h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        <Card
-          title="Proiecte gestionate"
-          value={data.managedProjects}
-          icon={<FolderKanban className="text-indigo-500" />}
-        />
-        <Card
-          title="Membri unici"
-          value={data.totalMembers}
-          icon={<Users className="text-yellow-500" />}
-        />
-        <Card
-          title="Taskuri totale"
-          value={data.totalTasks}
-          icon={<ListChecks className="text-blue-500" />}
-        />
-        <Card
-          title="To Do"
-          value={data.todoCount}
-          icon={<Clock className="text-gray-500" />}
-        />
-        <Card
-          title="În lucru"
-          value={data.inProgressCount}
-          icon={<Timer className="text-blue-600" />}
-        />
-        <Card
-          title="Finalizate"
-          value={data.doneCount}
-          icon={<CheckCircle2 className="text-green-600" />}
-        />
-        <Card
-          title="Întârziate"
-          value={data.lateCount}
-          icon={<AlertCircle className="text-red-600" />}
-          highlight={data.lateCount > 0}
-        />
-      </div>
-
-      <div className="mt-6 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-5 overflow-hidden shadow-inner">
-        <div
-          className="bg-green-500 h-full text-xs font-medium text-center text-white leading-5"
-          style={{ width: `${completionPercent}%` }}
-        >
-          {completionPercent}% completate
+      {data.managedProjects === 0 ? (
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="text-center">
+            <p className="text-3xl font-bold text-white mb-6">
+              Nu ai niciun proiect gestionat!
+            </p>
+          </div>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <Card
+              title="Proiecte gestionate"
+              value={data.managedProjects}
+              icon={<FolderKanban className="text-indigo-500" />}
+            />
+            <Card
+              title="Membri unici"
+              value={data.totalMembers}
+              icon={<Users className="text-yellow-500" />}
+            />
+            <Card
+              title="Taskuri totale"
+              value={data.totalTasks}
+              icon={<ListChecks className="text-blue-500" />}
+            />
+            <Card
+              title="To Do"
+              value={data.todoCount}
+              icon={<Clock className="text-gray-500" />}
+            />
+            <Card
+              title="În lucru"
+              value={data.inProgressCount}
+              icon={<Timer className="text-blue-600" />}
+            />
+            <Card
+              title="Finalizate"
+              value={data.doneCount}
+              icon={<CheckCircle2 className="text-green-600" />}
+            />
+            <Card
+              title="Întârziate"
+              value={data.lateCount}
+              icon={<AlertCircle className="text-red-600" />}
+              highlight={data.lateCount > 0}
+            />
+          </div>
+
+          <div className="mt-6 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-5 overflow-hidden shadow-inner">
+            <div
+              className="bg-green-500 h-full text-xs font-medium text-center text-white leading-5"
+              style={{ width: `${completionPercent}%` }}
+            >
+              {completionPercent}% completate
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

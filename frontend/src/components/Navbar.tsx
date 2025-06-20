@@ -23,7 +23,7 @@ const Navbar = () => {
           className="flex text-2xl font-semibold cursor-pointer hover:text-blue-400 transition"
           onClick={() => navigate("/")}
         >
-          kanban app
+          KanbanSGSM
           <Folders className="w-5 h-5 ml-1" />
         </h1>
         <button

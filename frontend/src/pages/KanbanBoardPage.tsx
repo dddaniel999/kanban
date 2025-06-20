@@ -21,7 +21,7 @@ import EditTaskModal from "../components/Kanban/EditTaskModal";
 import CreateTaskModal from "../components/Kanban/CreateTaskModal";
 import ViewTaskModal from "../components/Kanban/ViewTaskModal";
 import toast from "react-hot-toast";
-import { UserIcon, ArrowLeftIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import ProjectSettingsModal from "../components/Kanban/ProjectSettingsModal";
 import {
   ClipboardList,
@@ -29,7 +29,10 @@ import {
   CheckCircle,
   Settings,
   PlusIcon,
+  MessageSquare,
 } from "lucide-react";
+import ProjectCommentsModal from "../components/Kanban/ProjectCommentsModal";
+import MemberList from "../components/Kanban/MemberList";
 
 const columns = ["TO_DO", "IN_PROGRESS", "DONE"] as const;
 
@@ -50,12 +53,6 @@ const iconColors: Record<(typeof columns)[number], string> = {
   DONE: "text-green-500",
 };
 
-const columnBgClasses = {
-  TO_DO: "bg-white dark:bg-gray-800",
-  IN_PROGRESS: "bg-white dark:bg-gray-800",
-  DONE: "bg-white dark:bg-gray-800",
-};
-
 const KanbanBoard: React.FC = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
@@ -73,6 +70,7 @@ const KanbanBoard: React.FC = () => {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [projectTitle, setProjectTitle] = useState<string>("");
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
 
   const refreshProjectData = async () => {
     try {
@@ -116,44 +114,49 @@ const KanbanBoard: React.FC = () => {
       return;
     }
 
-    const updatedTasks = [...tasks];
-    const draggedTaskIndex = updatedTasks.findIndex(
-      (t) => t.id.toString() === draggableId
-    );
-    if (draggedTaskIndex === -1) return;
+    const draggedTask = tasks.find((t) => t.id.toString() === draggableId);
+    if (!draggedTask) return;
 
-    const draggedTask = updatedTasks[draggedTaskIndex];
     const newStatus = destination.droppableId as ColumnType;
 
-    const previousState = [...tasks]; // backup vizual
+    const previousState = [...tasks];
 
-    // Mutare optimistă în UI
-    updatedTasks.splice(draggedTaskIndex, 1);
-    const updatedDraggedTask = {
+    // Mutare optimistă
+    const newTasks = tasks
+      .filter((t) => t.id !== draggedTask.id)
+      .map((t) => ({ ...t }));
+
+    // Inserăm în noua poziție
+    const tasksInNewCol = newTasks
+      .filter((t) => t.status === newStatus)
+      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+
+    tasksInNewCol.splice(destination.index, 0, {
       ...draggedTask,
       status: newStatus,
-    };
-    updatedTasks.splice(destination.index, 0, updatedDraggedTask);
+    });
 
-    const reorderedTasks = updatedTasks.map((task, index) =>
-      task.status === newStatus ? { ...task, position: index } : task
-    );
+    // Rescriem pozițiile în noua coloană
+    tasksInNewCol.forEach((t, index) => {
+      t.position = index;
+    });
 
-    setTasks(reorderedTasks);
+    // Refacem lista combinată
+    const finalTasks = newTasks
+      .filter((t) => t.status !== newStatus)
+      .concat(tasksInNewCol);
 
-    setTimeout(() => {
-      updateTask({
-        ...draggedTask,
-        status: newStatus,
-        position: destination.index,
-      }).catch((err) => {
-        console.error(err);
-        toast.error(
-          "Eroare la actualizare. Taskul a fost readus la poziția anterioară."
-        );
-        setTasks(previousState); // rollback dacă backend-ul dă fail
-      });
-    }, 150);
+    setTasks(finalTasks);
+
+    // Salvăm în backend doar task-ul mutat
+    updateTask({
+      ...draggedTask,
+      status: newStatus,
+      position: destination.index,
+    }).catch(() => {
+      toast.error("Eroare la actualizare. Revin la starea anterioară.");
+      setTasks(previousState);
+    });
   };
 
   const handleEditSave = async (updated: Task) => {
@@ -260,23 +263,29 @@ const KanbanBoard: React.FC = () => {
           </button>
         </div>
       )}
+      <div className="fixed top-28 left-4 z-10">
+        <button
+          onClick={() => setIsCommentsOpen(true)}
+          className="flex items-center gap-2 bg-gray-800 text-sm px-3 py-2 rounded hover:bg-gray-900 transition"
+        >
+          <MessageSquare className="w-5 h-5" />
+        </button>
+      </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="w-full h-screen flex items-center justify-center overflow-hidden">
           <div className="w-[80vw] h-[80vh] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
             {columns.map((col) => (
               <Droppable key={col} droppableId={col}>
-                {(provided, snapshot) => (
+                {(provided) => (
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`p-4 rounded-xl shadow h-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700 transition-colors duration-200 ${
-                      columnBgClasses[col]
-                    } ${
-                      snapshot.isDraggingOver
-                        ? "bg-blue-100 dark:bg-blue-900/30"
-                        : ""
-                    }`}
+                    className={`p-4 rounded-xl shadow border border-gray-200 dark:border-gray-700 transition-colors duration-200
+              bg-white dark:bg-gray-800 flex flex-col
+              // FIXĂM ÎNĂLȚIMEA COLOANEI
+              h-[80vh] 
+              `}
                   >
                     <div className="flex justify-between items-center mb-2">
                       <h2 className="text-lg font-bold flex items-center gap-2 text-gray-800 dark:text-white">
@@ -302,7 +311,8 @@ const KanbanBoard: React.FC = () => {
                         </button>
                       )}
                     </div>
-                    <div className="flex-1 overflow-y-auto min-h-[12rem] relative">
+                    {/* Container taskuri cu scroll */}
+                    <div className="flex-1 overflow-y-auto min-h-[12rem]">
                       {tasks
                         .filter((task) => task.status === col)
                         .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
@@ -371,41 +381,7 @@ const KanbanBoard: React.FC = () => {
         task={viewingTask}
       />
 
-      <div className="w-[60vw] mx-auto bg-gradient-to-br from-white to-gray-100 dark:from-gray-700/20 dark:to-gray-800 p-4 rounded-xl shadow-md">
-        <h2 className="text-lg text-center font-bold text-gray-800 dark:text-white mb-4">
-          Membrii proiectului
-        </h2>
-
-        {["MANAGER", "MEMBER"].map((roleKey) => {
-          const label = roleKey === "MANAGER" ? "Manageri" : "Membri (DEV)";
-          const filtered = members.filter((m) => m.role === roleKey);
-
-          return (
-            <div key={roleKey} className="mb-6 text-center">
-              <h3 className="text-md font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                -- {label}
-              </h3>
-              {filtered.length > 0 ? (
-                <ul className="space-y-2 flex flex-col items-center">
-                  {filtered.map((m) => (
-                    <li
-                      key={m.id}
-                      className="flex items-center gap-2 text-sm text-gray-800 dark:text-white"
-                    >
-                      <UserIcon className="w-5 h-5 text-gray-500 dark:text-gray-300" />
-                      <span>{m.username}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-gray-500 italic">
-                  Niciun utilizator
-                </p>
-              )}
-            </div>
-          );
-        })}
-      </div>
+      <MemberList members={members} />
 
       <ProjectSettingsModal
         isOpen={isSettingsOpen}
@@ -413,6 +389,14 @@ const KanbanBoard: React.FC = () => {
         projectId={activeProjectId}
         refreshProjectData={refreshProjectData}
       />
+
+      {projectId && (
+        <ProjectCommentsModal
+          isOpen={isCommentsOpen}
+          onClose={() => setIsCommentsOpen(false)}
+          projectId={parseInt(projectId)}
+        />
+      )}
     </>
   );
 };

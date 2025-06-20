@@ -38,7 +38,6 @@ const DashboardPage: React.FC = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [managerData, setManagerData] = useState<any | null>(null);
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
-
   const [error, setError] = useState<string | null>(null);
 
   useAuthRedirect();
@@ -47,15 +46,12 @@ const DashboardPage: React.FC = () => {
     getUserDashboard()
       .then(setData)
       .catch((err) => setError(err.message));
-
     getManagerDashboard()
       .then(setManagerData)
       .catch(() => setManagerData(null));
-
     getUserTasks()
       .then(setTasks)
       .catch((err) => setError(err.message));
-
     getUserProjects()
       .then(setProjects)
       .catch((err) => setError(err.message));
@@ -87,11 +83,11 @@ const DashboardPage: React.FC = () => {
 
   const displayNames: Record<CardType, string> = {
     projects: "Proiectele mele",
-    tasks: "Toate taskurile",
-    todo: "Taskuri în așteptare",
-    inProgress: "Taskuri în lucru",
-    done: "Taskuri finalizate",
-    late: "Taskuri întârziate",
+    tasks: "Toate task-urile",
+    todo: "Task-uri în așteptare",
+    inProgress: "Task-uri în lucru",
+    done: "Task-uri finalizate",
+    late: "Task-uri întârziate",
   };
 
   const cardColor = (type: CardType) => {
@@ -113,8 +109,8 @@ const DashboardPage: React.FC = () => {
   if (!data) return <div className="text-gray-500">Se încarcă...</div>;
 
   return (
-    <div className="relative w-screen h-screen overflow-y-auto flex flex-col items-center bg-gray-100 dark:bg-gray-900 pt-30">
-      <div className="w-full max-w-6xl space-y-6">
+    <div className="relative w-full min-h-screen overflow-y-auto flex flex-col items-center bg-gradient-to-br from-gray-100 to-gray-300 dark:from-gray-900 dark:to-gray-950 pt-24 px-4">
+      <div className="w-full max-w-6xl space-y-8">
         <motion.div
           className="grid grid-cols-1 sm:grid-cols-2 gap-6"
           initial={{ opacity: 0, y: -20 }}
@@ -129,7 +125,7 @@ const DashboardPage: React.FC = () => {
             colorClass={cardColor("projects")}
           />
           <Card
-            title="Taskuri totale"
+            title="Task-uri totale"
             value={data.totalTasks}
             onClick={() => setSelectedCard("tasks")}
             type="tasks"
@@ -138,12 +134,12 @@ const DashboardPage: React.FC = () => {
         </motion.div>
 
         <motion.div
-          className="w-full text-center bg-gray-800 rounded-xl text-white py-2 font-semibold"
+          className="text-center text-lg font-semibold text-gray-800 dark:text-gray-200"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          Filtrări
+          Filtrări task-uri
         </motion.div>
 
         <motion.div
@@ -190,13 +186,13 @@ const DashboardPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 30 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
+              className="relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl"
             >
               <button
                 className="absolute top-4 right-4 text-gray-500 hover:text-red-500"
                 onClick={() => setSelectedCard(null)}
               >
-                Înapoi
+                ← Înapoi
               </button>
               <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">
                 {displayNames[selectedCard]}
@@ -208,15 +204,24 @@ const DashboardPage: React.FC = () => {
                   onProjectDeleted={handleProjectDeleted}
                 />
               ) : (
-                <TaskList tasks={filteredTasks(selectedCard)} />
+                <TaskList
+                  tasks={filteredTasks(selectedCard)}
+                  projects={projects}
+                />
               )}
             </motion.div>
           )}
         </AnimatePresence>
 
-        <div className="w-full">
-          {managerData && <DashboardManagerSlider data={managerData} />}
-        </div>
+        {managerData && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <DashboardManagerSlider data={managerData} />
+          </motion.div>
+        )}
       </div>
     </div>
   );
@@ -247,16 +252,10 @@ const Card: React.FC<{
   onClick: () => void;
   colorClass?: string;
   type: CardType;
-}> = ({
-  title,
-  value,
-  onClick,
-  type,
-  colorClass = "text-blue-600 dark:text-blue-400",
-}) => (
+}> = ({ title, value, onClick, type, colorClass }) => (
   <motion.div
     onClick={onClick}
-    className="cursor-pointer bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md hover:ring-2 hover:ring-blue-500 hover:scale-105 transition-transform"
+    className="cursor-pointer bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-md hover:ring-2 hover:ring-blue-500 hover:scale-[1.03] transition-all"
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.25 }}
@@ -264,11 +263,11 @@ const Card: React.FC<{
     <div className="flex items-center justify-between">
       <div className="flex items-center">
         {getIconForType(type)}
-        <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-300">
+        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
           {title}
         </h3>
       </div>
-      <p className={`text-xl font-bold ${colorClass}`}>{value}</p>
+      <p className={`text-2xl font-bold ${colorClass}`}>{value}</p>
     </div>
   </motion.div>
 );

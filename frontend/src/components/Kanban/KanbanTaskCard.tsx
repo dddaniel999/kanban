@@ -20,11 +20,12 @@ const KanbanTaskCard: React.FC<KanbanTaskCardProps> = ({
   const deadlineDate = task.deadline ? new Date(task.deadline) : null;
   const now = new Date();
 
-  const isLate = deadlineDate && deadlineDate < now && task.status !== "DONE";
+  const isLate =
+    task.status !== "DONE" && deadlineDate !== null && deadlineDate < now;
 
   const isDueSoon =
-    deadlineDate &&
-    !isLate &&
+    task.status !== "DONE" &&
+    deadlineDate !== null &&
     differenceInHours(deadlineDate, now) <= 72 &&
     differenceInHours(deadlineDate, now) > 0;
 
@@ -53,9 +54,12 @@ const KanbanTaskCard: React.FC<KanbanTaskCardProps> = ({
             {task.title}
           </h4>
           <p className="text-sm text-gray-500 dark:text-gray-300 line-clamp-2">
-            {task.description || "Fără descriere"}
+            {task.description
+              ? task.description.length > 20
+                ? task.description.slice(0, 20) + "..."
+                : task.description
+              : "Fără descriere"}
           </p>
-
           {deadlineDate && (
             <div
               className={`mt-2 inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${deadlineClass}`}

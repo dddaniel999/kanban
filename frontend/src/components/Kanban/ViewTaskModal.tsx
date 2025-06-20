@@ -1,7 +1,7 @@
 import React from "react";
 import { differenceInHours } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock } from "lucide-react";
+import { Clock, User } from "lucide-react";
 import type { Task } from "../TaskCard";
 
 interface Props {
@@ -40,7 +40,7 @@ const ViewTaskModal: React.FC<Props> = ({ isOpen, onClose, task }) => {
   const isLate = effectiveStatus === "LATE";
   const isDueSoon =
     deadlineDate &&
-    differenceInHours(deadlineDate, now) <= 3 &&
+    differenceInHours(deadlineDate, now) <= 72 &&
     differenceInHours(deadlineDate, now) > 0 &&
     effectiveStatus !== "DONE";
 
@@ -118,11 +118,22 @@ const ViewTaskModal: React.FC<Props> = ({ isOpen, onClose, task }) => {
 
             {/* Deadline */}
             {deadlineDate && (
-              <div
-                className={`mt-2 inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${deadlineClass}`}
-              >
-                <Clock className="w-3 h-3" />
-                Deadline: {deadlineDate.toLocaleString("ro-RO")}
+              <div className="space-y-2 mt-2">
+                <div
+                  className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${deadlineClass}`}
+                >
+                  <Clock className="w-3 h-3" />
+                  Deadline: {deadlineDate.toLocaleString("ro-RO")}
+                </div>
+
+                {task.assignedTo?.username && (
+                  <div className="flex items-center gap-1 text-xs text-blue-800 dark:text-blue-100 bg-blue-200 dark:bg-blue-500 px-2 py-1 rounded-full w-fit">
+                    <User className="w-3 h-3" />
+                    <span className="font-medium">
+                      {task.assignedTo.username}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
 

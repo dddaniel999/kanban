@@ -5,7 +5,6 @@ import { fetchWithAuth } from "./fetchWithAuth";
 interface JwtPayload {
   sub: string;
   role: string;
-  // alte câmpuri dacă mai ai
 }
 
 export const getUserRoleFromToken = (): string | null => {
@@ -56,10 +55,14 @@ export const updateTask = async (task: Task) => {
     method: "PUT",
     body: JSON.stringify(task),
   });
-  if (!res || !res.ok) throw new Error("Eroare la actualizarea task-ului");
-  return res.json();
-};
 
+  if (!res?.ok) {
+    const text = await res?.text(); // sau `await res.json()` dacă trimiți JSON
+    throw new Error(text);
+  }
+
+  return res?.json();
+};
 export const deleteTask = async (taskId: number) => {
   const res = await fetchWithAuth(`${API_BASE}/tasks/${taskId}`, {
     method: "DELETE",
@@ -185,7 +188,7 @@ export const updateProject = async (
   data: {
     title?: string;
     description?: string;
-    memberIds?: number[]; // ✅ adăugat aici
+    memberIds?: number[]; //
   }
 ) => {
   const response = await fetch(`${API_BASE}/projects/${projectId}`, {
@@ -214,3 +217,69 @@ export const getProjectById = async (projectId: number) => {
   }
   return res.json();
 };
+
+// Comentarii proiect
+
+export const getProjectComments = async (projectId: number) => {
+  const res = await fetchWithAuth(`${API_BASE}/projects/${projectId}/comments`);
+  if (!res || !res.ok)
+    throw new Error("Eroare la obținerea comentariilor proiectului");
+
+  return res.json();
+};
+
+export const postProjectComment = async (
+  projectId: number,
+  content: string
+) => {
+  const res = await fetchWithAuth(
+    `${API_BASE}/projects/${projectId}/comments`,
+    {
+      method: "POST",
+      body: JSON.stringify({ content }),
+    }
+  );
+
+  if (!res || !res.ok) {
+    const text = await res?.text();
+    throw new Error(text || "Eroare la trimiterea comentariului");
+  }
+
+  return res.json();
+};
+
+// Ștergere comentariu
+export async function deleteProjectComment(
+  projectId: number,
+  commentId: number
+) {
+  const res = await fetchWithAuth(
+    `${API_BASE}/projects/${projectId}/comments/${commentId}`,
+    { method: "DELETE" }
+  );
+
+  if (!res || !res.ok) {
+    const text = await res?.text?.();
+    throw new Error(text || "Eroare la ștergerea comentariului");
+  }
+
+  return true;
+}
+
+// Pin/unpin comentariu
+export async function togglePinProjectComment(
+  projectId: number,
+  commentId: number
+) {
+  const res = await fetchWithAuth(
+    `${API_BASE}/projects/${projectId}/comments/${commentId}/pin`,
+    { method: "PATCH" }
+  );
+
+  if (!res || !res.ok) {
+    const text = await res?.text?.();
+    throw new Error(text || "Eroare la schimbarea stării pinned");
+  }
+
+  return true;
+}

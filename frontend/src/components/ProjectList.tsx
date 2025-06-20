@@ -82,6 +82,12 @@ const ProjectList: React.FC<ProjectListProps> = ({
             </p>
           )}
 
+          {project.role === "MANAGER" && (
+            <div className="absolute bottom-2 right-2 bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded shadow-sm">
+              MANAGER
+            </div>
+          )}
+
           {/* Afișăm butonul doar dacă userul e MANAGER în acel proiect */}
           {project.role === "MANAGER" && (
             <button
@@ -96,13 +102,15 @@ const ProjectList: React.FC<ProjectListProps> = ({
       ))}
 
       {/* Card de creare proiect */}
-      <button
-        className="!bg-blue-900 text-white p-4 rounded-xl shadow transition flex items-center justify-center text-4xl font-extrabold"
-        style={{ fontSize: "1.5rem" }}
+      <div
         onClick={() => navigate("/createProject")}
+        className="flex flex-col items-center justify-center gap-2 bg-white dark:bg-gray-700 p-6 rounded-xl shadow hover:shadow-lg transition cursor-pointer border-2 border-dashed border-blue-500 hover:border-blue-700"
       >
-        +
-      </button>
+        <span className="text-4xl text-blue-500 font-bold">+</span>
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+          Adaugă proiect nou
+        </span>
+      </div>
     </div>
   );
 };
