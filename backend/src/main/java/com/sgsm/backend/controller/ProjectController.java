@@ -22,8 +22,15 @@ public class ProjectController {
     @GetMapping
     public ResponseEntity<List<ProjectWithRoleDTO>> getProjectsForUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
+
+        // Dacă are rol global ADMIN returnează toate proiectele și simulează rolul MANAGER
+        if (user.getRole() != null && "ADMIN".equals(user.getRole())) {
+            return ResponseEntity.ok(projectService.getAllProjectsAsManagerView());
+        }
+
         return ResponseEntity.ok(projectService.getProjectsForUser(user));
     }
+
 
     @PostMapping
     public ResponseEntity<?> createProject(@RequestBody ProjectDTO dto, @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -76,4 +83,6 @@ public class ProjectController {
         return projectOpt.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(403).build());
     }
+
+
 }

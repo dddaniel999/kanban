@@ -26,6 +26,10 @@ public class ProjectService {
     @Autowired private UserRepository userRepository;
 
     public List<ProjectWithRoleDTO> getProjectsForUser(User user) {
+        if ("ADMIN".equals(user.getRole())) {
+            return getAllProjectsAsManagerView();
+        }
+
         return projectMemberRepository.findByUserId(user.getId()).stream()
                 .map(pm -> new ProjectWithRoleDTO(
                         pm.getProject().getId(),
@@ -34,6 +38,7 @@ public class ProjectService {
                         pm.getRole()
                 )).toList();
     }
+
 
     public ResponseEntity<?> createProject(ProjectDTO dto, User user) {
         Project project = new Project(dto.getTitle(), dto.getDescription());
@@ -69,18 +74,26 @@ public class ProjectService {
     }
 
     public Optional<String> getUserRoleInProject(User user, Long projectId) {
+        if ("ADMIN".equals(user.getRole())) {
+            return Optional.of("MANAGER");
+        }
+
         return projectMemberRepository.findByUserIdAndProjectId(user.getId(), projectId)
                 .map(ProjectMember::getRole);
     }
 
     public List<ProjectMemberDTO> getProjectMembers(Long projectId, User user) {
-        if (!projectMemberRepository.existsByUserIdAndProjectId(user.getId(), projectId)) {
+        boolean isAdmin = "ADMIN".equals(user.getRole());
+
+        if (!isAdmin && !projectMemberRepository.existsByUserIdAndProjectId(user.getId(), projectId)) {
             throw new RuntimeException("Nu ai acces la acest proiect.");
         }
+
         return projectMemberRepository.findByProjectId(projectId).stream()
                 .map(pm -> new ProjectMemberDTO(pm.getUser().getId(), pm.getUser().getUsername(), pm.getRole()))
                 .toList();
     }
+
 
     public ResponseEntity<?> deleteProject(Long projectId, User user) {
         Project project = projectRepository.findById(projectId)
@@ -152,9 +165,27 @@ public class ProjectService {
     }
 
     public Optional<ProjectDTO> getProjectById(Long id, User user) {
+        boolean isAdmin = "ADMIN".equals(user.getRole());
         boolean isMember = projectMemberRepository.existsByProjectIdAndUserId(id, user.getId());
-        if (!isMember) return Optional.empty();
+
+        if (!isMember && !isAdmin) return Optional.empty();
 
         return projectRepository.findById(id).map(ProjectDTO::new);
     }
+
+
+
+    public List<ProjectWithRoleDTO> getAllProjectsAsManagerView() {
+        List<Project> allProjects = projectRepository.findAll();
+
+        return allProjects.stream()
+                .map(project -> new ProjectWithRoleDTO(
+                        project.getId(),
+                        project.getTitle(),
+                        project.getDescription(),
+                        "MANAGER"
+                ))
+                .collect(Collectors.toList());
+    }
+
 }

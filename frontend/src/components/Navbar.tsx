@@ -1,14 +1,16 @@
-import { Power, Folders, LogOut } from "lucide-react";
+import { Power, Folders, LogOut, Shield } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getUserRoleFromToken } from "../api/api";
 
 const Navbar = () => {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const globalRole = getUserRoleFromToken();
 
   const handleLogout = () => {
     toast.success("Te-ai delogat cu succes");
@@ -26,14 +28,28 @@ const Navbar = () => {
           KanbanSGSM
           <Folders className="w-5 h-5 ml-1" />
         </h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-1 hover:text-red-400 transition"
-          title="Logout"
-        >
-          <Power size={20} />
-          <span className="hidden sm:inline">Logout</span>
-        </button>
+
+        <div className="flex items-center gap-4">
+          {globalRole === "ADMIN" && (
+            <button
+              onClick={() => navigate("/admin")}
+              className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition"
+              title="Panou Admin"
+            >
+              <Shield size={20} />
+              <span className="hidden sm:inline">Admin</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-1 hover:text-red-400 transition"
+            title="Logout"
+          >
+            <Power size={20} />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
+        </div>
       </nav>
 
       <AnimatePresence>

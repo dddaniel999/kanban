@@ -283,3 +283,69 @@ export async function togglePinProjectComment(
 
   return true;
 }
+
+// admin stuff
+
+export const isAdmin = (): boolean => {
+  const role = getUserRoleFromToken();
+  return role === "ADMIN";
+};
+
+export const deleteUser = async (userId: number) => {
+  const res = await fetchWithAuth(`${API_BASE}/users/${userId}`, {
+    method: "DELETE",
+  });
+
+  if (!res || !res.ok) {
+    const message = await res?.text();
+    throw new Error(message || "Eroare la ștergerea utilizatorului");
+  }
+
+  return true;
+};
+
+export const updateUser = async (
+  userId: number,
+  data: { username?: string; password?: string }
+) => {
+  const res = await fetchWithAuth(`${API_BASE}/users/${userId}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+
+  if (!res || !res.ok) {
+    const msg = await res?.text();
+    throw new Error(msg || "Eroare la actualizarea utilizatorului");
+  }
+
+  return res.text();
+};
+
+export const createUser = async (userData: {
+  username: string;
+  password: string;
+}) => {
+  const res = await fetchWithAuth(`${API_BASE}/users`, {
+    method: "POST",
+    body: JSON.stringify(userData),
+  });
+
+  if (!res || !res.ok) {
+    const message = await res?.text();
+    throw new Error(message || "Eroare la crearea utilizatorului");
+  }
+
+  return res.text();
+};
+
+export const getAllProjects = async () => {
+  const res = await fetchWithAuth(`${API_BASE}/admin/projects`);
+  if (!res.ok) throw new Error("Nu s-au putut încărca proiectele");
+  return res.json();
+};
+
+export const getAllTasks = async () => {
+  const res = await fetchWithAuth(`${API_BASE}/admin/tasks`);
+  if (!res.ok) throw new Error("Nu s-au putut încărca task-urile");
+  return res.json();
+};

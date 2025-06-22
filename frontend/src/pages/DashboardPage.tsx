@@ -10,7 +10,7 @@ import ProjectList from "../components/ProjectList";
 import type { Task } from "../components/TaskCard";
 import type { Project } from "../components/ProjectList";
 import DashboardManagerSlider from "../components/DashboardManagerSlider";
-import useAuthRedirect from "../hooks/useAuthRedirect";
+
 import {
   Folder,
   ListTodo,
@@ -39,8 +39,6 @@ const DashboardPage: React.FC = () => {
   const [managerData, setManagerData] = useState<any | null>(null);
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  useAuthRedirect();
 
   useEffect(() => {
     getUserDashboard()

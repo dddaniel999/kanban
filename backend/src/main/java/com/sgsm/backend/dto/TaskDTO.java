@@ -1,8 +1,12 @@
 package com.sgsm.backend.dto;
 
+import com.sgsm.backend.model.Task;
+
 import java.time.LocalDateTime;
 
 public class TaskDTO {
+
+    private Long id;
     private String title;
     private String description;
     private String status;
@@ -44,4 +48,14 @@ public class TaskDTO {
 
     public Long getAssignedToId() { return assignedToId; }
     public void setAssignedToId(Long assignedToId) { this.assignedToId = assignedToId; }
+
+
+    public TaskDTO(Task task) {
+        this.id = task.getId();
+        this.title = task.getTitle();
+        this.description = task.getDescription();
+        this.status = task.getStatus();
+        this.deadline = task.getDeadline() != null ? LocalDateTime.parse(task.getDeadline().toString()) : null;
+        this.projectId = task.getProject().getId();
+    }
 }

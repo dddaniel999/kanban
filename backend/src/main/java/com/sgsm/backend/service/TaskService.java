@@ -60,10 +60,14 @@ public class TaskService {
         List<Task> tasks;
 
         if (projectId != null) {
+            // ✅ permite accesul adminului global
+            boolean isAdmin = "ADMIN".equals(user.getRole());
+
             ProjectMember relation = projectMemberRepository.findByUserIdAndProjectId(user.getId(), projectId).orElse(null);
-            if (relation == null) {
+            if (relation == null && !isAdmin) {
                 return ResponseEntity.status(403).body("Nu ești membru al proiectului.");
             }
+
             tasks = taskRepository.findByProjectIdOrderByStatusAscPositionAsc(projectId);
         } else {
             tasks = taskRepository.findByAssignedToId(user.getId());
@@ -71,6 +75,7 @@ public class TaskService {
 
         return ResponseEntity.ok(tasks);
     }
+
 
     public ResponseEntity<?> deleteTask(Long id, User user) {
         Task task = taskRepository.findById(id).orElseThrow(() -> new RuntimeException("Taskul nu există."));

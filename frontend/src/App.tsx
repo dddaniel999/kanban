@@ -10,6 +10,7 @@ import KanbanBoard from "./pages/KanbanBoardPage";
 import CreateProject from "./pages/CreateProject";
 import Navbar from "./components/Navbar";
 import { Toaster } from "react-hot-toast";
+import AdminPage from "./pages/AdminPage";
 
 const AppContent = () => {
   const location = useLocation();
@@ -23,6 +24,7 @@ const AppContent = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/kanbanBoard/:projectId" element={<KanbanBoard />} />
         <Route path="/createProject" element={<CreateProject />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Routes>
     </>
   );

@@ -28,6 +28,12 @@ public class UserService {
                 .toList();
     }
 
+    public List<UserResponseDTO> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(user -> new UserResponseDTO(user.getId(), user.getUsername()))
+                .toList();
+    }
+
     public ResponseEntity<?> createUser(UserDTO dto) {
         Optional<User> existing = userRepository.findByUsername(dto.getUsername());
         if (existing.isPresent()) {
@@ -41,5 +47,45 @@ public class UserService {
 
         userRepository.save(user);
         return ResponseEntity.status(201).body("User creat cu succes.");
+    }
+
+    public ResponseEntity<?> deleteUser(Long id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        userRepository.deleteById(id);
+        return ResponseEntity.ok("Utilizator șters cu succes.");
+    }
+
+    public ResponseEntity<?> updateUser(Long id, UserDTO dto, Long currentUserId) {
+        Optional<User> optionalUser = userRepository.findById(id);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User user = optionalUser.get();
+
+        // Protejează userii cu rol ADMIN
+        if ("ADMIN".equals(user.getRole())) {
+            return ResponseEntity.badRequest().body("Nu poți modifica un utilizator ADMIN.");
+        }
+
+        // Evită să își modifice propriul cont aici (doar ca protecție suplimentară)
+        if (id.equals(currentUserId)) {
+            return ResponseEntity.badRequest().body("Nu îți poți modifica propriul cont din acest panou.");
+        }
+
+        if (dto.getUsername() != null && !dto.getUsername().isBlank()) {
+            user.setUsername(dto.getUsername());
+        }
+
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+
+        userRepository.save(user);
+        return ResponseEntity.ok("Utilizator actualizat cu succes.");
     }
 }

@@ -33,6 +33,12 @@ public class ProjectDTO {
         this.description = project.getDescription();
     }
 
+    public ProjectDTO(Long id,String title, String description) {
+        this.title = title;
+        this.description = description;
+        this.id = id;
+    }
+
     public ProjectDTO() {
 
     }
