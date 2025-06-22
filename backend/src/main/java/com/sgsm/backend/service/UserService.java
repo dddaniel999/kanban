@@ -72,7 +72,7 @@ public class UserService {
             return ResponseEntity.badRequest().body("Nu poți modifica un utilizator ADMIN.");
         }
 
-        // Evită să își modifice propriul cont aici (doar ca protecție suplimentară)
+        // Evită să își modifice propriul cont aici -=-protecție suplimentară
         if (id.equals(currentUserId)) {
             return ResponseEntity.badRequest().body("Nu îți poți modifica propriul cont din acest panou.");
         }
