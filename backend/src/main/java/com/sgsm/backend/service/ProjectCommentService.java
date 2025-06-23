@@ -7,6 +7,7 @@ import com.sgsm.backend.model.ProjectComment;
 import com.sgsm.backend.model.User;
 import com.sgsm.backend.repository.ProjectCommentRepository;
 import com.sgsm.backend.repository.ProjectRepository;
+import com.sgsm.backend.repository.ProjectMemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,8 @@ public class ProjectCommentService {
 
     @Autowired private ProjectCommentRepository commentRepository;
     @Autowired private ProjectRepository projectRepository;
+    @Autowired private ProjectMemberRepository projectMemberRepository;
+    @Autowired private PermissionService permissionService;
 
     public ResponseEntity<?> addComment(Long projectId, ProjectCommentRequestDTO dto, User user) {
         Optional<Project> optionalProject = projectRepository.findById(projectId);
@@ -60,9 +63,8 @@ public class ProjectCommentService {
             return ResponseEntity.badRequest().body("Comentariul nu aparține proiectului");
         }
 
-        String role = user.getRole();
         boolean isAuthor = comment.getAuthor().getId().equals(user.getId());
-        boolean isAdmin = "ADMIN".equals(role);
+        boolean isAdmin = permissionService.isAdmin(user);
 
         if (!isAuthor && !isAdmin) {
             return ResponseEntity.status(403).body("Nu ai permisiunea să ștergi comentariul");
@@ -112,10 +114,10 @@ public class ProjectCommentService {
             return ResponseEntity.badRequest().body("Comentariul nu aparține proiectului");
         }
 
-        boolean isManager = comment.getProject().getMembers().stream()
-                .anyMatch(m -> m.getUser().getId().equals(user.getId()) && "MANAGER".equals(m.getRole()));
+        boolean isManager = permissionService.isManagerOfProject(user, projectId, projectMemberRepository);
+        boolean isAdmin = permissionService.isAdmin(user);
 
-        if (!isManager) {
+        if (!isManager && !isAdmin) {
             return ResponseEntity.status(403).body("Nu ai permisiunea să faci această acțiune");
         }
 
@@ -124,4 +126,3 @@ public class ProjectCommentService {
         return ResponseEntity.ok().build();
     }
 }
-

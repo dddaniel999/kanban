@@ -24,9 +24,10 @@ public class ProjectService {
     @Autowired private ProjectRepository projectRepository;
     @Autowired private ProjectMemberRepository projectMemberRepository;
     @Autowired private UserRepository userRepository;
+    @Autowired private PermissionService permissionService;
 
     public List<ProjectWithRoleDTO> getProjectsForUser(User user) {
-        if ("ADMIN".equals(user.getRole())) {
+        if (permissionService.isAdmin(user)) {
             return getAllProjectsAsManagerView();
         }
 
@@ -38,7 +39,6 @@ public class ProjectService {
                         pm.getRole()
                 )).toList();
     }
-
 
     public ResponseEntity<?> createProject(ProjectDTO dto, User user) {
         Project project = new Project(dto.getTitle(), dto.getDescription());
@@ -68,13 +68,11 @@ public class ProjectService {
     }
 
     public boolean isUserManagerOfProject(User user, Long projectId) {
-        return projectMemberRepository.findByUserIdAndProjectId(user.getId(), projectId)
-                .map(pm -> "MANAGER".equals(pm.getRole()))
-                .orElse(false);
+        return permissionService.isManagerOfProject(user, projectId, projectMemberRepository);
     }
 
     public Optional<String> getUserRoleInProject(User user, Long projectId) {
-        if ("ADMIN".equals(user.getRole())) {
+        if (permissionService.isAdmin(user)) {
             return Optional.of("MANAGER");
         }
 
@@ -83,7 +81,7 @@ public class ProjectService {
     }
 
     public List<ProjectMemberDTO> getProjectMembers(Long projectId, User user) {
-        boolean isAdmin = "ADMIN".equals(user.getRole());
+        boolean isAdmin = permissionService.isAdmin(user);
 
         if (!isAdmin && !projectMemberRepository.existsByUserIdAndProjectId(user.getId(), projectId)) {
             throw new RuntimeException("Nu ai acces la acest proiect.");
@@ -94,16 +92,14 @@ public class ProjectService {
                 .toList();
     }
 
-
     public ResponseEntity<?> deleteProject(Long projectId, User user) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Proiectul nu există."));
 
-        ProjectMember relation = projectMemberRepository
-                .findByUserIdAndProjectId(user.getId(), projectId)
-                .orElse(null);
+        boolean isAdmin = permissionService.isAdmin(user);
+        boolean isManager = permissionService.isManagerOfProject(user, projectId, projectMemberRepository);
 
-        if (relation == null || !"MANAGER".equals(relation.getRole())) {
+        if (!isManager && !isAdmin) {
             return ResponseEntity.status(403).body("Nu ai permisiunea de a șterge acest proiect.");
         }
 
@@ -112,8 +108,10 @@ public class ProjectService {
     }
 
     public ResponseEntity<?> updateProject(Long id, User user, ProjectUpdateDTO updateDTO) {
-        Optional<ProjectMember> memberOpt = projectMemberRepository.findByUserIdAndProjectId(user.getId(), id);
-        if (memberOpt.isEmpty() || !"MANAGER".equals(memberOpt.get().getRole())) {
+        boolean isAdmin = permissionService.isAdmin(user);
+        boolean isManager = permissionService.isManagerOfProject(user, id, projectMemberRepository);
+
+        if (!isManager && !isAdmin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -165,15 +163,13 @@ public class ProjectService {
     }
 
     public Optional<ProjectDTO> getProjectById(Long id, User user) {
-        boolean isAdmin = "ADMIN".equals(user.getRole());
+        boolean isAdmin = permissionService.isAdmin(user);
         boolean isMember = projectMemberRepository.existsByProjectIdAndUserId(id, user.getId());
 
         if (!isMember && !isAdmin) return Optional.empty();
 
         return projectRepository.findById(id).map(ProjectDTO::new);
     }
-
-
 
     public List<ProjectWithRoleDTO> getAllProjectsAsManagerView() {
         List<Project> allProjects = projectRepository.findAll();
@@ -187,5 +183,4 @@ public class ProjectService {
                 ))
                 .collect(Collectors.toList());
     }
-
 }

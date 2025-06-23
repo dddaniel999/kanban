@@ -14,7 +14,7 @@ public class TaskDTO {
     private LocalDateTime deadline;
     private Long projectId;
     private Long assignedToId;
-
+    private String assignedToUsername;
     private Integer position;
 
 
@@ -48,14 +48,21 @@ public class TaskDTO {
 
     public Long getAssignedToId() { return assignedToId; }
     public void setAssignedToId(Long assignedToId) { this.assignedToId = assignedToId; }
-
+    public String getAssignedToUsername() { return assignedToUsername; }
+    public void setAssignedToUsername(String assignedToUsername) { this.assignedToUsername = assignedToUsername; }
 
     public TaskDTO(Task task) {
         this.id = task.getId();
         this.title = task.getTitle();
         this.description = task.getDescription();
         this.status = task.getStatus();
-        this.deadline = task.getDeadline() != null ? LocalDateTime.parse(task.getDeadline().toString()) : null;
+        this.tags = task.getTags();
+        this.deadline = task.getDeadline();
         this.projectId = task.getProject().getId();
+        this.position = task.getPosition();
+        if (task.getAssignedTo() != null) {
+            this.assignedToId = task.getAssignedTo().getId();
+            this.assignedToUsername = task.getAssignedTo().getUsername();
+        }
     }
 }

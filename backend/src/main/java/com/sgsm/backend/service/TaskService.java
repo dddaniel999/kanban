@@ -18,11 +18,13 @@ public class TaskService {
     @Autowired private ProjectRepository projectRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private ProjectMemberRepository projectMemberRepository;
+    @Autowired private PermissionService permissionService;
 
     public ResponseEntity<?> createTask(TaskDTO dto, User user) {
-        ProjectMember relation = projectMemberRepository.findByUserIdAndProjectId(user.getId(), dto.getProjectId()).orElse(null);
+        boolean isAdmin = permissionService.isAdmin(user);
+        boolean isManager = permissionService.isManagerOfProject(user, dto.getProjectId(), projectMemberRepository);
 
-        if (relation == null || !"MANAGER".equals(relation.getRole())) {
+        if (!isManager && !isAdmin) {
             return ResponseEntity.status(403).body(Map.of("error", "Nu ai dreptul să adaugi taskuri în acest proiect."));
         }
 
@@ -60,11 +62,10 @@ public class TaskService {
         List<Task> tasks;
 
         if (projectId != null) {
-            // ✅ permite accesul adminului global
-            boolean isAdmin = "ADMIN".equals(user.getRole());
+            boolean isAdmin = permissionService.isAdmin(user);
+            boolean isMember = projectMemberRepository.findByUserIdAndProjectId(user.getId(), projectId).isPresent();
 
-            ProjectMember relation = projectMemberRepository.findByUserIdAndProjectId(user.getId(), projectId).orElse(null);
-            if (relation == null && !isAdmin) {
+            if (!isMember && !isAdmin) {
                 return ResponseEntity.status(403).body("Nu ești membru al proiectului.");
             }
 
@@ -76,13 +77,13 @@ public class TaskService {
         return ResponseEntity.ok(tasks);
     }
 
-
     public ResponseEntity<?> deleteTask(Long id, User user) {
         Task task = taskRepository.findById(id).orElseThrow(() -> new RuntimeException("Taskul nu există."));
 
-        ProjectMember relation = projectMemberRepository.findByUserIdAndProjectId(user.getId(), task.getProject().getId()).orElse(null);
+        boolean isAdmin = permissionService.isAdmin(user);
+        boolean isManager = permissionService.isManagerOfProject(user, task.getProject().getId(), projectMemberRepository);
 
-        if (relation == null || !"MANAGER".equals(relation.getRole())) {
+        if (!isManager && !isAdmin) {
             return ResponseEntity.status(403).body("Nu ai dreptul să ștergi acest task.");
         }
 
@@ -94,12 +95,11 @@ public class TaskService {
         Task task = taskRepository.findById(id).orElseThrow(() -> new RuntimeException("Taskul nu există."));
 
         Long projectId = task.getProject().getId();
-        ProjectMember relation = projectMemberRepository.findByUserIdAndProjectId(user.getId(), projectId).orElse(null);
-
-        boolean isManager = relation != null && "MANAGER".equals(relation.getRole());
+        boolean isAdmin = permissionService.isAdmin(user);
+        boolean isManager = permissionService.isManagerOfProject(user, projectId, projectMemberRepository);
         boolean isAssigned = task.getAssignedTo() != null && task.getAssignedTo().getId().equals(user.getId());
 
-        if (!isManager && !isAssigned) {
+        if (!isManager && !isAssigned && !isAdmin) {
             return ResponseEntity.status(403).body("Nu ai permisiunea de a edita acest task.");
         }
 
@@ -110,7 +110,7 @@ public class TaskService {
             }
         }
 
-        if (isManager) {
+        if (isManager || isAdmin) {
             task.setTitle(dto.getTitle());
             task.setDescription(dto.getDescription());
             task.setTags(dto.getTags());

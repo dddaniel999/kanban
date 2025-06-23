@@ -26,6 +26,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query("SELECT COALESCE(MAX(t.position), 0) FROM Task t WHERE t.status = :status AND t.project.id = :projectId")
     int findMaxPositionByStatusAndProjectId(@Param("status") String status, @Param("projectId") Long projectId);
 
-
+    @Query("SELECT t FROM Task t LEFT JOIN FETCH t.assignedTo")
+    List<Task> findAllWithAssignedTo();
 
 }
