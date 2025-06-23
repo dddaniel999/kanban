@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import React, { useState } from "react";
 
 const LoginPage: React.FC = () => {
@@ -35,8 +36,11 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="flex items-center justify-center h-screen bg-gradient-to-br from-blue-950 to-gray-900 px-4">
-      <form
+      <motion.form
         onSubmit={handleLogin}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
         className="bg-gray-800 p-8 rounded-2xl shadow-xl w-full max-w-sm space-y-6 text-white"
       >
         <h2 className="text-2xl font-extrabold text-center">Autentificare</h2>
@@ -98,7 +102,7 @@ const LoginPage: React.FC = () => {
           )}
           {loading ? "Se conectează..." : "Conectează-te"}
         </button>
-      </form>
+      </motion.form>
     </div>
   );
 };

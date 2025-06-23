@@ -25,7 +25,7 @@ const DashboardManagerSlider: React.FC<{ data: any }> = ({ data }) => {
         <Tooltip title="DashboardManager" placement="left" arrow>
           <button
             onClick={() => setOpen(!open)}
-            className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-full bg-indigo-600 text-white p-2 rounded-l-lg z-50"
+            className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-full bg-blue-600 text-white p-2 rounded-l-lg z-50"
           >
             <ChevronRight
               className={`${open ? "rotate-180" : ""} transition-transform`}

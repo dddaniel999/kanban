@@ -1,5 +1,6 @@
 import React from "react";
 import { differenceInHours } from "date-fns";
+import { User } from "lucide-react";
 
 export interface Task {
   id: number;
@@ -13,8 +14,21 @@ export interface Task {
   position?: number;
 }
 
+export interface TaskDTO {
+  id: number;
+  title: string;
+  description?: string;
+  status: "TO_DO" | "IN_PROGRESS" | "DONE" | "LATE";
+  deadline?: string;
+  assignedToId?: number;
+  assignedToUsername?: string;
+  tags?: string[];
+  projectId: number;
+  position?: number;
+}
+
 interface TaskCardProps {
-  task: Task;
+  task: TaskDTO;
 }
 
 type EffectiveStatus = "TO_DO" | "IN_PROGRESS" | "DONE" | "LATE";
@@ -57,7 +71,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
           {task.title}
         </h3>
         <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[effectiveStatus]}`}
+          className={`px-2 py-1 rounded-full text-xs font-bold ${statusColors[effectiveStatus]}`}
         >
           {effectiveStatus.replace("_", " ")}
         </span>
@@ -75,10 +89,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         </p>
       )}
 
-      {task.assignedTo && (
-        <p className="text-xs text-gray-700 dark:text-gray-300 mt-1">
-          Asignat lui: {task.assignedTo.username}
-        </p>
+      {task.assignedToUsername && (
+        <div className="mt-1 flex items-center gap-1 text-xs text-blue-800 dark:text-blue-100 bg-blue-200 dark:bg-blue-500 px-2 py-1 rounded-full w-fit">
+          <User className="w-3 h-3" />
+          <span className="font-medium">{task.assignedToUsername}</span>
+        </div>
       )}
     </div>
   );

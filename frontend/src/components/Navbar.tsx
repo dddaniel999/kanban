@@ -1,4 +1,4 @@
-import { Power, Folders, LogOut, Shield } from "lucide-react";
+import { Power, Folders, LogOut, ShieldCheck } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -36,7 +36,7 @@ const Navbar = () => {
               className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition"
               title="Panou Admin"
             >
-              <Shield size={20} />
+              <ShieldCheck size={20} />
               <span className="hidden sm:inline">Admin</span>
             </button>
           )}

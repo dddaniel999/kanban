@@ -1,11 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import TaskCard, { type Task } from "./TaskCard";
+import TaskCard from "./TaskCard";
+import type { TaskDTO } from "./TaskCard";
 import { type Project } from "./ProjectList";
 import { Folder } from "lucide-react";
 
 interface TaskListProps {
-  tasks: Task[];
+  tasks: TaskDTO[];
   projects: Project[];
 }
 
@@ -25,10 +26,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, projects }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {tasks.map((task) => {
-        const validStatus = ["TO_DO", "IN_PROGRESS", "DONE"].includes(
-          task.status
-        );
-        if (!validStatus) return null;
+        if (!task) return null;
 
         const projectId = (task as any).projectId ?? (task as any).project?.id;
         const projectTitle = projects.find((p) => p.id === projectId)?.title;

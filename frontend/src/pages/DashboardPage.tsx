@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from "react";
 import {
-  getUserDashboard,
   getManagerDashboard,
   getUserTasks,
   getUserProjects,
+  getAllTasks,
+  getAllProjects,
+  getUserRoleFromToken,
 } from "../api/api";
 import TaskList from "../components/TaskList";
 import ProjectList from "../components/ProjectList";
 import type { Task } from "../components/TaskCard";
 import type { Project } from "../components/ProjectList";
 import DashboardManagerSlider from "../components/DashboardManagerSlider";
-
 import {
   Folder,
   ListTodo,
@@ -18,6 +19,8 @@ import {
   CheckCircle,
   AlertCircle,
   LayoutDashboard,
+  ShieldCheck,
+  User,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -40,20 +43,45 @@ const DashboardPage: React.FC = () => {
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const globalRole = getUserRoleFromToken();
+  const isAdmin = globalRole === "ADMIN";
+
   useEffect(() => {
-    getUserDashboard()
-      .then(setData)
-      .catch((err) => setError(err.message));
     getManagerDashboard()
       .then(setManagerData)
       .catch(() => setManagerData(null));
-    getUserTasks()
-      .then(setTasks)
+
+    const taskFetch = isAdmin ? getAllTasks : getUserTasks;
+    const projectFetch = isAdmin ? getAllProjects : getUserProjects;
+
+    Promise.all([taskFetch(), projectFetch()])
+      .then(([fetchedTasks, fetchedProjects]) => {
+        setTasks(fetchedTasks);
+        setProjects(fetchedProjects);
+        calculateDashboardData(fetchedTasks, fetchedProjects);
+      })
       .catch((err) => setError(err.message));
-    getUserProjects()
-      .then(setProjects)
-      .catch((err) => setError(err.message));
-  }, []);
+  }, [isAdmin]);
+
+  const calculateDashboardData = (allTasks: Task[], allProjects: Project[]) => {
+    const todoCount = allTasks.filter((t) => t.status === "TO_DO").length;
+    const inProgressCount = allTasks.filter(
+      (t) => t.status === "IN_PROGRESS"
+    ).length;
+    const doneCount = allTasks.filter((t) => t.status === "DONE").length;
+    const lateCount = allTasks.filter(
+      (t) => new Date(t.deadline || "") < new Date() && t.status !== "DONE"
+    ).length;
+
+    setData({
+      projectCount: allProjects.length,
+      totalTasks: allTasks.length,
+      todoCount,
+      inProgressCount,
+      doneCount,
+      lateCount,
+    });
+  };
 
   const handleProjectDeleted = (deletedId: number) => {
     setProjects((prev) => prev.filter((p) => p.id !== deletedId));
@@ -109,12 +137,7 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="relative w-full min-h-screen overflow-y-auto flex flex-col items-center bg-gradient-to-br from-gray-100 to-gray-300 dark:from-gray-900 dark:to-gray-950 pt-24 px-4">
       <div className="w-full max-w-6xl space-y-8">
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 gap-6"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
+        <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <Card
             title="Proiecte"
             value={data.projectCount}
@@ -131,21 +154,11 @@ const DashboardPage: React.FC = () => {
           />
         </motion.div>
 
-        <motion.div
-          className="text-center text-lg font-semibold text-gray-800 dark:text-gray-200"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
+        <motion.div className="text-center text-lg font-semibold text-gray-800 dark:text-gray-200">
           Filtrări task-uri
         </motion.div>
 
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
+        <motion.div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           <Card
             title="To Do"
             value={data.todoCount}
@@ -195,7 +208,6 @@ const DashboardPage: React.FC = () => {
               <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">
                 {displayNames[selectedCard]}
               </h2>
-
               {selectedCard === "projects" ? (
                 <ProjectList
                   projects={projects}
@@ -212,15 +224,33 @@ const DashboardPage: React.FC = () => {
         </AnimatePresence>
 
         {managerData && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
+          <motion.div>
             <DashboardManagerSlider data={managerData} />
           </motion.div>
         )}
       </div>
+      <motion.div
+        initial={{ opacity: 0, x: -20, y: 20 }}
+        animate={{ opacity: 1, x: 0, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className={`fixed bottom-4 left-4 text-xs font-medium text-white px-3 py-1 rounded-full shadow-md z-50 flex items-center gap-1 ${
+          isAdmin
+            ? "bg-blue-600 dark:bg-blue-700"
+            : "bg-gray-600 dark:bg-gray-700"
+        }`}
+      >
+        {isAdmin ? (
+          <>
+            <ShieldCheck className="w-4 h-4" />
+            ADMIN DASHBOARD – acces GLOBAL!
+          </>
+        ) : (
+          <>
+            <User className="w-4 h-4" />
+            USER DASHBOARD
+          </>
+        )}
+      </motion.div>
     </div>
   );
 };
