@@ -20,33 +20,32 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class AuthServiceTest {
-
     @Mock
-    private UserRepository userRepository;
-
+    private UserRepository userRepository; // Simulare repo care ar oferă acces la utilizatori
     @Mock
-    private JwtUtil jwtUtil;
-
+    private JwtUtil jwtUtil;  // Simulare utilitarul pentru generarea/verificarea token-urilor JWT
     @Mock
-    private PasswordEncoder passwordEncoder;
-
+    private PasswordEncoder passwordEncoder;  // Simulare encoder parolă pentru verificarea autentificării
     @InjectMocks
-    private AuthService authService;
-
+    private AuthService authService; // Injectare mock-uri în clasa testată: AuthService
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        MockitoAnnotations.openMocks(this);  // Inițializare mock-uri înainte de fiecare test
     }
 
     @Test
     void authenticate_userNotFound_returns401() {
-        LoginRequest request = new LoginRequest("john", "pass123");
-        when(userRepository.findByUsername("john")).thenReturn(Optional.empty());
+        LoginRequest request = new LoginRequest("ion", "pass123"); // simulare cerere autentificare
 
-        ResponseEntity<?> response = authService.authenticate(request);
+        when(userRepository.findByUsername("ion")).thenReturn(Optional.empty()); // simulare absență user în DB
 
-        assertEquals(401, response.getStatusCodeValue());
-        assertTrue(((Map<?, ?>) response.getBody()).containsKey("error"));
+        ResponseEntity<?> response = authService.authenticate(request); // apelare metodă autentificare
+
+        assertEquals(401, response.getStatusCodeValue()); // verificare răspuns - cod 401 - neautorizat
+
+        assertTrue(((Map<?, ?>) response.getBody()).containsKey("error")); // verificăm dacă răspunsul conține cheia „error”
+
+        // Verificăm dacă mesajul de eroare este cel așteptat
         assertEquals("Utilizatorul nu a fost găsit", ((Map<?, ?>) response.getBody()).get("error"));
     }
 
