@@ -1,12 +1,13 @@
 package com.sgsm.backend.repository;
 
 import com.sgsm.backend.model.ProjectMember;
+import com.sgsm.backend.model.ProjectMemberId;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Long> {
+public interface ProjectMemberRepository extends JpaRepository<ProjectMember, ProjectMemberId> {
 
     List<ProjectMember> findByUserId(Long userId);
 

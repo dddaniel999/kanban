@@ -7,14 +7,15 @@ import java.time.LocalDateTime;
 @Table(name = "project_members")
 public class ProjectMember {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @EmbeddedId
+    private ProjectMemberId id;
 
+    @MapsId("userId")
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @MapsId("projectId")
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
@@ -25,7 +26,7 @@ public class ProjectMember {
 
     public ProjectMember() {}
 
-    public ProjectMember(Long id, User user, Project project, String role, LocalDateTime joinedAt) {
+    public ProjectMember(ProjectMemberId id, User user, Project project, String role, LocalDateTime joinedAt) {
         this.id = id;
         this.user = user;
         this.project = project;
@@ -36,14 +37,22 @@ public class ProjectMember {
     public ProjectMember(String member) {
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public ProjectMemberId getId() { return id; }
+    public void setId(ProjectMemberId id) { this.id = id; }
 
     public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    public void setUser(User user) {
+        this.user = user;
+        if (this.id == null) this.id = new ProjectMemberId();
+        this.id.setUserId(user.getId());
+    }
 
     public Project getProject() { return project; }
-    public void setProject(Project project) { this.project = project; }
+    public void setProject(Project project) {
+        this.project = project;
+        if (this.id == null) this.id = new ProjectMemberId();
+        this.id.setProjectId(project.getId());
+    }
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
