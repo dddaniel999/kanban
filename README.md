@@ -11,6 +11,7 @@ A full-stack **Kanban-style project management application** designed to help te
 - **Interactive Kanban board** with drag-and-drop  
 - Task attributes: title, description, deadline, assigned user
 - Project member management and comments (with pinned messages)  
+- Other
 
 ---
 
